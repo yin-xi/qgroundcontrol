@@ -56,9 +56,11 @@ const QGCMapPolygon& QGCMapPolygon::operator=(const QGCMapPolygon& other)
     clear();
 
     QVariantList vertices = other.path();
-    for (int i=0; i<vertices.count(); i++) {
-        appendVertex(vertices[i].value<QGeoCoordinate>());
+    QList<QGeoCoordinate> rgCoord;
+    foreach (const QVariant& vertexVar, vertices) {
+        rgCoord.append(vertexVar.value<QGeoCoordinate>());
     }
+    appendVertices(rgCoord);
 
     setDirty(true);
 
@@ -270,7 +272,6 @@ void QGCMapPolygon::appendVertices(const QList<QGeoCoordinate>& coordinates)
     emit pathChanged();
 }
 
-
 void QGCMapPolygon::_polygonModelDirtyChanged(bool dirty)
 {
     if (dirty) {
@@ -370,7 +371,7 @@ QGeoCoordinate QGCMapPolygon::vertexCoordinate(int vertex) const
     if (vertex >= 0 && vertex < _polygonPath.count()) {
         return _polygonPath[vertex].value<QGeoCoordinate>();
     } else {
-        qWarning() << "QGCMapPolygon::vertexCoordinate bad vertex requested";
+        qWarning() << "QGCMapPolygon::vertexCoordinate bad vertex requested:count" << vertex << _polygonPath.count();
         return QGeoCoordinate();
     }
 }
@@ -447,9 +448,7 @@ void QGCMapPolygon::offset(double distance)
 
     // Update internals
     clear();
-    for (int i=0; i<rgNewPolygon.count(); i++) {
-        appendVertex(rgNewPolygon[i]);
-    }
+    appendVertices(rgNewPolygon);
 }
 
 bool QGCMapPolygon::loadKMLFile(const QString& kmlFile)
@@ -530,6 +529,10 @@ bool QGCMapPolygon::loadKMLFile(const QString& kmlFile)
 double QGCMapPolygon::area(void) const
 {
     // https://www.mathopenref.com/coordpolygonarea2.html
+
+    if (_polygonPath.count() < 3) {
+        return 0;
+    }
 
     double coveredArea = 0.0;
     QList<QPointF> nedVertices = nedPolygon();

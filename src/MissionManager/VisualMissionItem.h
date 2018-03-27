@@ -18,7 +18,6 @@
 
 #include "QGCMAVLink.h"
 #include "QGC.h"
-#include "MavlinkQmlSingleton.h"
 #include "QmlObjectListModel.h"
 #include "Fact.h"
 #include "QGCLoggingCategory.h"
@@ -214,6 +213,8 @@ private slots:
     void _terrainDataReceived   (bool success, QList<double> heights);
 
 private:
+    void _commonInit(void);
+
     QTimer _updateTerrainTimer;
     double _lastLatTerrainQuery;
     double _lastLonTerrainQuery;
